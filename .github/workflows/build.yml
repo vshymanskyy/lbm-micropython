@@ -20,7 +20,7 @@ jobs:
         python-version: '3.x'
     - name: Cache tools
       id: cache-tools
-      uses: actions/cache@v5
+      uses: actions/cache@v4
       with:
         path: tools
         key: ${{ runner.os }}-tools
@@ -36,9 +36,10 @@ jobs:
         wget -qO- https://github.com/vshymanskyy/micropython/archive/refs/heads/mpy-ld-link-archives.tar.gz | tar xz -C ./tools
 
     - name: Install dependencies
+      run: |
         sudo apt update
         sudo apt install build-essential gcc-multilib gcc-arm-none-eabi
-        pip3 install -U pyelftools ar tabulate
+        pip3 install -U requests pyelftools ar tabulate
 
     - name: Run builds
       run: |
