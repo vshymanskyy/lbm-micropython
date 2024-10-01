@@ -29,9 +29,9 @@ MICROPY_LINK_RUNTIME = 1
 
 include $(MPY_DIR)/py/dynruntime.mk
 
-MPY_LD_FLAGS += -llbm_lib/build/basic_modem.a
+MPY_LD_FLAGS += -llbm_lib/$(BUILD)/basic_modem.a
 
-CLEAN_EXTRA += lbm_lib/build
+CLEAN_EXTRA += lbm_lib/$(BUILD)
 
 CFLAGS += -Os -Wno-unused-value -Wno-unused-function \
           -Wno-unused-variable -Wno-unused-but-set-variable -Wwrite-strings \
@@ -40,10 +40,10 @@ CFLAGS += -Os -Wno-unused-value -Wno-unused-function \
           -Ilbm_lib/smtc_modem_core/radio_drivers/sx126x_driver/src
 
 # Build LoRa Basic Modem before anything else
-module/module.c: lbm_lib/build/basic_modem.a
+module/module.c: lbm_lib/$(BUILD)/basic_modem.a
 
-lbm_lib/build/basic_modem.a: lbm_lib FORCE_LBM_BUILD
-	$(Q)$(MAKE) --no-print-directory -C lbm_lib basic_modem_sx1262 \
+lbm_lib/$(BUILD)/basic_modem.a: lbm_lib FORCE_LBM_BUILD
+	$(Q)$(MAKE) --no-print-directory -C lbm_lib basic_modem_sx1262 BUILD_ROOT="$(BUILD)" \
 		PREFIX="$(CROSS)" MCU_FLAGS="$(MICROPY_ARCH_CFLAGS)" EXTRAFLAGS="-Werror -DNDEBUG" \
 		REGION="$(LBM_REGION)" MODEM_TRACE="no" VERBOSE="no"
 

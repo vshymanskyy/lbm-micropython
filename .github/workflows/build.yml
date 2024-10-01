@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+    paths-ignore: ['**.md', '**.svg', '**.png']
+  pull_request:
+    paths-ignore: ['**.md', '**.svg', '**.png']
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Cache tools
+      id: cache-tools
+      uses: actions/cache@v5
+      with:
+        path: tools
+        key: ${{ runner.os }}-tools
+    - name: Install tools
+      if: steps.cache-tools.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p tools
+        echo "Installing xtensa-lx106-elf"
+        wget -qO- https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.2.0-gcc10.3/x86_64-linux-gnu.xtensa-lx106-elf-c791b74.230224.tar.gz | tar xz -C ./tools
+        echo "Installing xtensa-esp32-elf"
+        wget -qO- https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz | tar xz -C ./tools
+        echo "Installing MicroPython"
+        wget -qO- https://github.com/vshymanskyy/micropython/archive/refs/heads/mpy-ld-link-archives.tar.gz | tar xz -C ./tools
+
+    - name: Install dependencies
+        sudo apt update
+        sudo apt install build-essential gcc-multilib gcc-arm-none-eabi
+        pip3 install -U pyelftools ar tabulate
+
+    - name: Run builds
+      run: |
+        export PATH=$PWD/tools/xtensa-lx106-elf/bin:$PATH
+        export PATH=$PWD/tools/xtensa-esp32-elf/bin:$PATH
+        export MPY_DIR=$PWD/tools/micropython-mpy-ld-link-archives
+
+        python3 ./extra/build-all.py
