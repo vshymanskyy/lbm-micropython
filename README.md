@@ -6,8 +6,9 @@
 
 ## TODO
 
-- [ ] Fix build
+- [x] Fix build
 - [ ] Create basic module API
-- [ ] Attach LBM driver to MicroPython `machine.SPI` / `machine.Pin`
+- [ ] Attach LBM builtin driver to MicroPython `machine.SPI` / `machine.Pin`
 - [ ] Class A device
+- [ ] TBD: Attach LBM LoRaWAN stack to MicroPython LoRa drivers
 - [ ] [Allow static `.bss` variables](https://github.com/micropython/micropython/issues/15943)
