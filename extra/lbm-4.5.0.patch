@@ -1,0 +1,348 @@
+diff --git a/makefiles/common.mk b/makefiles/common.mk
+index 5a652f3..a8a415a 100644
+--- a/makefiles/common.mk
++++ b/makefiles/common.mk
+@@ -490,7 +490,7 @@ LBM_CFLAGS += $(LBM_C_DEFS) $(RELAY_C_DEFS)
+ LBM_CFLAGS += $(LBM_C_INCLUDES) $(RELAY_C_INCLUDES)
+ LBM_CFLAGS += -fno-builtin $(MCU_FLAGS) $(EXTRAFLAGS) $(LBM_OPT) $(WFLAG) -MMD -MP -MF"$(@:%.o=%.d)"
+ LBM_CFLAGS += -falign-functions=4
+-LBM_CFLAGS += -std=c17
++LBM_CFLAGS += -std=c11
+ 
+ LBM_C_SOURCES = \
+ 	$(RADIO_DRIVER_C_SOURCES) \
+diff --git a/smtc_modem_core/geolocation_services/mw_common.h b/smtc_modem_core/geolocation_services/mw_common.h
+index d086fdc..81e6d79 100644
+--- a/smtc_modem_core/geolocation_services/mw_common.h
++++ b/smtc_modem_core/geolocation_services/mw_common.h
+@@ -54,7 +54,6 @@ extern "C" {
+ #define MW_RETURN_ON_FAILURE( expr )                                               \
+     if( ( expr ) == false )                                                        \
+     {                                                                              \
+-        SMTC_MODEM_HAL_TRACE_ERROR( "%s failed - line %d\n", __func__, __LINE__ ); \
+         return MW_RC_FAILED;                                                       \
+     }
+ 
+@@ -115,4 +114,4 @@ void mw_radio_set_sleep( const void* radio_context );
+ 
+ #endif  // MW_COMMON_H__
+ 
+-/* --- EOF ------------------------------------------------------------------ */
+\ No newline at end of file
++/* --- EOF ------------------------------------------------------------------ */
+diff --git a/smtc_modem_core/geolocation_services/mw_gnss_scan.c b/smtc_modem_core/geolocation_services/mw_gnss_scan.c
+index 2ae76c8..d3b90d9 100644
+--- a/smtc_modem_core/geolocation_services/mw_gnss_scan.c
++++ b/smtc_modem_core/geolocation_services/mw_gnss_scan.c
+@@ -917,7 +917,6 @@ static mw_return_code_t gnss_scan_task_done( bool* navgroup_complete )
+     /* Sanity check */
+     if( navgroup.nb_scans_valid > GNSS_NAVGROUP_SIZE_MAX )
+     {
+-        SMTC_MODEM_HAL_TRACE_ERROR( "OVERFLOW? (%s:%d)\n", __func__, __LINE__ );
+         return MW_RC_FAILED;
+     }
+ 
+diff --git a/smtc_modem_core/lorawan_api/lorawan_api.c b/smtc_modem_core/lorawan_api/lorawan_api.c
+index 4d58286..dfc928c 100644
+--- a/smtc_modem_core/lorawan_api/lorawan_api.c
++++ b/smtc_modem_core/lorawan_api/lorawan_api.c
+@@ -65,7 +65,7 @@
+ #include "smtc_modem_crypto.h"
+ #include "lorawan_api.h"
+ 
+-static struct
++struct
+ {
+     lr1_stack_mac_t lr1_mac_obj[NUMBER_OF_STACKS];
+     smtc_real_t     real_obj[NUMBER_OF_STACKS];
+diff --git a/smtc_modem_core/lorawan_manager/lorawan_join_management.c b/smtc_modem_core/lorawan_manager/lorawan_join_management.c
+index 345c2c7..1dd43e5 100644
+--- a/smtc_modem_core/lorawan_manager/lorawan_join_management.c
++++ b/smtc_modem_core/lorawan_manager/lorawan_join_management.c
+@@ -113,7 +113,7 @@ static uint8_t lorawan_join_management_service_downlink_handler( lr1_stack_mac_d
+  * @param stack_id
+  */
+ static void    lorawan_join_internal_add_task( uint8_t stack_id );
+-static uint8_t nap = 0;
++
+ /*
+  * -----------------------------------------------------------------------------
+  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
+@@ -159,6 +159,7 @@ static void lorawan_join_management_service_on_launch( void* context )
+     }
+     else
+     {
++        uint8_t nap;
+         lorawan_api_set_join_status( STACK_ID_CURRENT_TASK, JOINING );
+         tx_protocol_manager_request( TX_PROTOCOL_JOIN_LORA, NAP, NAP, &nap, NAP, NAP, smtc_modem_hal_get_time_in_ms( ),
+                                      STACK_ID_CURRENT_TASK );
+diff --git a/smtc_modem_core/lorawan_manager/lorawan_send_management.c b/smtc_modem_core/lorawan_manager/lorawan_send_management.c
+index 6ce2f97..0eaea73 100644
+--- a/smtc_modem_core/lorawan_manager/lorawan_send_management.c
++++ b/smtc_modem_core/lorawan_manager/lorawan_send_management.c
+@@ -95,7 +95,7 @@ typedef struct lorawan_send_management_s
+ 
+ } lorawan_send_management_t;
+ 
+-static lorawan_send_management_t lorawan_send_management_obj[NUMBER_OF_STACKS];
++lorawan_send_management_t lorawan_send_management_obj[NUMBER_OF_STACKS];
+ 
+ /*
+  * -----------------------------------------------------------------------------
+diff --git a/smtc_modem_core/lorawan_packages/lorawan_certification/lorawan_certification.c b/smtc_modem_core/lorawan_packages/lorawan_certification/lorawan_certification.c
+index 37de9ba..4867bd5 100644
+--- a/smtc_modem_core/lorawan_packages/lorawan_certification/lorawan_certification.c
++++ b/smtc_modem_core/lorawan_packages/lorawan_certification/lorawan_certification.c
+@@ -110,7 +110,7 @@ typedef struct certif_service_ctx_s
+     lorawan_certification_t lorawan_certification_obj[NUMBER_OF_CERTIF_OBJ];
+ } certif_service_ctx_t;
+ 
+-static certif_service_ctx_t certif_service_ctx;
++certif_service_ctx_t certif_service_ctx;
+ 
+ #define timestamp_launch_ms certif_service_ctx.timestamp_launch_ms
+ #define lorawan_certification_obj certif_service_ctx.lorawan_certification_obj
+diff --git a/smtc_modem_core/lr1mac/src/services/smtc_duty_cycle.c b/smtc_modem_core/lr1mac/src/services/smtc_duty_cycle.c
+index 6a8c8b9..607c683 100644
+--- a/smtc_modem_core/lr1mac/src/services/smtc_duty_cycle.c
++++ b/smtc_modem_core/lr1mac/src/services/smtc_duty_cycle.c
+@@ -65,7 +65,7 @@
+  * --- PRIVATE VARIABLES -------------------------------------------------------
+  */
+ 
+-static struct
++struct
+ {
+     smtc_dtc_t* dtc_obj_ptr;
+ #if defined( REGION_EU_868 ) || ( REGION_RU_864 )
+diff --git a/smtc_modem_core/lr1mac/src/services/smtc_lbt.c b/smtc_modem_core/lr1mac/src/services/smtc_lbt.c
+index 5008605..235e202 100644
+--- a/smtc_modem_core/lr1mac/src/services/smtc_lbt.c
++++ b/smtc_modem_core/lr1mac/src/services/smtc_lbt.c
+@@ -39,7 +39,7 @@
+ #include "stddef.h"
+ #include "smtc_modem_hal.h"
+ #include "lr1_stack_mac_layer.h"
+-static smtc_lbt_t lbt_obj_declare[NUMBER_OF_STACKS];
++smtc_lbt_t lbt_obj_declare[NUMBER_OF_STACKS];
+ #define LBT_SNIFF_DURATION_MS_DEFAULT ( 5 )
+ #define LBT_THRESHOLD_DBM_DEFAULT ( int16_t )( -80 )
+ #define LBT_BW_HZ__DEFAULT ( 200000 )
+@@ -247,4 +247,4 @@ smtc_lbt_t* smtc_lbt_get_obj( uint8_t stack_id )
+     {
+         return NULL;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/smtc_modem_core/modem_supervisor/modem_tx_protocol_manager.c b/smtc_modem_core/modem_supervisor/modem_tx_protocol_manager.c
+index a0d1851..166e8b1 100755
+--- a/smtc_modem_core/modem_supervisor/modem_tx_protocol_manager.c
++++ b/smtc_modem_core/modem_supervisor/modem_tx_protocol_manager.c
+@@ -117,7 +117,7 @@ typedef enum tx_protocol_manager_state
+  * --- PRIVATE VARIABLES -------------------------------------------------------
+  */
+ 
+-static struct
++struct
+ {
+     tx_protocol_manager_tx_type_t current_tpm_request_type;
+     tx_protocol_manager_state_t   current_tpm_state;
+@@ -1263,4 +1263,4 @@ static void tpm_debug_print( void )
+         SMTC_MODEM_HAL_TRACE_ERROR( "TPM state error 0x%x\n", tpm_list_of_state_to_execute[0] );
+         break;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/smtc_modem_core/modem_utilities/modem_core.c b/smtc_modem_core/modem_utilities/modem_core.c
+index 7fbb32a..6ecc0ea 100644
+--- a/smtc_modem_core/modem_utilities/modem_core.c
++++ b/smtc_modem_core/modem_utilities/modem_core.c
+@@ -266,7 +266,7 @@ bool modem_suspend_radio_access( void )
+ {
+     rp_radio_params_t fake_radio_params = { 0 };
+ 
+-    rp_task_t rp_task = {
++    const rp_task_t rp_task = {
+         .hook_id                    = RP_HOOK_ID_SUSPEND,
+         .type                       = RP_TASK_TYPE_NONE,
+         .launch_task_callbacks      = modem_empty_callback,
+diff --git a/smtc_modem_core/modem_utilities/modem_services_config.h b/smtc_modem_core/modem_utilities/modem_services_config.h
+index d9ad729..7ca7c8f 100644
+--- a/smtc_modem_core/modem_utilities/modem_services_config.h
++++ b/smtc_modem_core/modem_utilities/modem_services_config.h
+@@ -104,14 +104,14 @@ typedef struct modem_service_config_s
+     uint8_t service_id;  // Start to 0 for new type of services, increment this number for multiple instantiation of the
+                          // same type of service
+     uint8_t stack_id;    // The linked LoRaWAN stack to this service
+-    void    ( *callbacks_init_service )( uint8_t* service_id, uint8_t task_id,
++    void    ( *callbacks_init_service )( const uint8_t* service_id, uint8_t task_id,
+                                       uint8_t ( **callback )( lr1_stack_mac_down_data_t* ),
+                                       void ( **callback_on_launch )( void* ), void ( **callback_on_update )( void* ),
+                                       void** callback_context );
+ 
+ } modem_service_config_t;
+ 
+-static modem_service_config_t modem_service_config[] = {
++static const modem_service_config_t modem_service_config[1]; /*{
+     { .service_id = 0, .stack_id = 0, .callbacks_init_service = lorawan_certification_services_init },
+ #ifdef RELAY_RX
+     { .service_id = 0, .stack_id = 0, .callbacks_init_service = lorawan_relay_rx_services_init },
+@@ -158,7 +158,7 @@ static modem_service_config_t modem_service_config[] = {
+     { .service_id = 0, .stack_id = 0, .callbacks_init_service = store_and_forward_flash_services_init },
+ // { .service_id = 0, .stack_id = 0, .callbacks_init_service = store_and_forward_services_init },
+ #endif
+-};
++};*/
+ 
+ #define NUMBER_OF_SERVICES ( sizeof modem_service_config / sizeof modem_service_config[0] )
+ 
+diff --git a/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c b/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c
+index b01d5a1..cea5dbb 100644
+--- a/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c
++++ b/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c
+@@ -201,7 +201,7 @@ typedef struct
+     uint8_t  param;
+ } gfsk_bw_t;
+ 
+-gfsk_bw_t gfsk_bw[] = {
++const gfsk_bw_t gfsk_bw[] = {
+     { 4800, SX126X_GFSK_BW_4800 },     { 5800, SX126X_GFSK_BW_5800 },     { 7300, SX126X_GFSK_BW_7300 },
+     { 9700, SX126X_GFSK_BW_9700 },     { 11700, SX126X_GFSK_BW_11700 },   { 14600, SX126X_GFSK_BW_14600 },
+     { 19500, SX126X_GFSK_BW_19500 },   { 23400, SX126X_GFSK_BW_23400 },   { 29300, SX126X_GFSK_BW_29300 },
+diff --git a/smtc_modem_core/smtc_modem.c b/smtc_modem_core/smtc_modem.c
+index 960d420..b22e7b0 100644
+--- a/smtc_modem_core/smtc_modem.c
++++ b/smtc_modem_core/smtc_modem.c
+@@ -174,20 +174,13 @@ typedef struct modem_key_ctx_s
+ 
+ radio_planner_t modem_radio_planner;
+ 
+-#if defined( SX128X )
+-ralf_t modem_radio = RALF_SX128X_INSTANTIATE( NULL );
+-#elif defined( SX126X )
+-ralf_t modem_radio = RALF_SX126X_INSTANTIATE( NULL );
+-#elif defined( LR11XX )
+-ralf_t modem_radio = RALF_LR11XX_INSTANTIATE( NULL );
+-#elif defined( SX127X )
++#if defined( SX127X )
+ #include "sx127x.h"
+-static sx127x_t sx127x;
+-ralf_t          modem_radio = RALF_SX127X_INSTANTIATE( &sx127x );
+-#else
+-#error "Please select radio board.."
++sx127x_t sx127x;
+ #endif
+ 
++ralf_t modem_radio;
++
+ struct
+ {
+     uint8_t  modem_appkey_status;
+@@ -233,6 +226,17 @@ void smtc_modem_init( void ( *callback_event )( void ) )
+ {
+     SMTC_MODEM_HAL_TRACE_INFO( "Modem Initialization\n" );
+ 
++#if defined( SX128X )
++    const ralf_t mr = RALF_SX128X_INSTANTIATE( NULL );
++#elif defined( SX126X )
++    const ralf_t mr = RALF_SX126X_INSTANTIATE( NULL );
++#elif defined( LR11XX )
++    const ralf_t mr = RALF_LR11XX_INSTANTIATE( NULL );
++#elif defined( SX127X )
++    const ralf_t mr = RALF_SX127X_INSTANTIATE( &sx127x );
++#endif
++    modem_radio = mr;
++
+     // init radio and put it in sleep mode
+     SMTC_MODEM_HAL_PANIC_ON_FAILURE( ral_reset( &( modem_radio.ral ) ) == RAL_STATUS_OK );
+     SMTC_MODEM_HAL_PANIC_ON_FAILURE( ral_init( &( modem_radio.ral ) ) == RAL_STATUS_OK );
+diff --git a/smtc_modem_core/smtc_modem_crypto/smtc_modem_crypto.c b/smtc_modem_core/smtc_modem_crypto/smtc_modem_crypto.c
+index a10f2a4..aedf1a1 100644
+--- a/smtc_modem_core/smtc_modem_crypto/smtc_modem_crypto.c
++++ b/smtc_modem_core/smtc_modem_crypto/smtc_modem_crypto.c
+@@ -106,7 +106,7 @@ typedef struct smtc_crypto_key_addr_s
+ /*
+  * Key-Address list
+  */
+-static smtc_crypto_key_addr_t smtc_crypto_key_addr_list[NUM_OF_MC_SEC_CTX] = {
++static const smtc_crypto_key_addr_t smtc_crypto_key_addr_list[NUM_OF_MC_SEC_CTX] = {
+     { SMTC_MODEM_CRYPTO_MULTICAST_0_ADDR, SMTC_SE_MC_APP_S_KEY_0, SMTC_SE_MC_NWK_S_KEY_0, SMTC_SE_MC_KEY_0 },
+     { SMTC_MODEM_CRYPTO_MULTICAST_1_ADDR, SMTC_SE_MC_APP_S_KEY_1, SMTC_SE_MC_NWK_S_KEY_1, SMTC_SE_MC_KEY_1 },
+     { SMTC_MODEM_CRYPTO_MULTICAST_2_ADDR, SMTC_SE_MC_APP_S_KEY_2, SMTC_SE_MC_NWK_S_KEY_2, SMTC_SE_MC_KEY_2 },
+@@ -182,7 +182,7 @@ static smtc_modem_crypto_return_code_t derive_multicast_key_encryption_key( uint
+  * @return smtc_modem_crypto_return_code_t
+  */
+ static smtc_modem_crypto_return_code_t get_key_addr_item( smtc_modem_crypto_addr_id_t addr_id,
+-                                                          smtc_crypto_key_addr_t**    item );
++                                                          const smtc_crypto_key_addr_t** item );
+ 
+ /*
+  *-----------------------------------------------------------------------------------
+@@ -390,7 +390,7 @@ smtc_modem_crypto_return_code_t smtc_modem_crypto_derive_multicast_session_keys(
+     smtc_modem_crypto_return_code_t rc = SMTC_MODEM_CRYPTO_RC_ERROR;
+ 
+     // Determine current security context
+-    smtc_crypto_key_addr_t* cur_item;
++    const smtc_crypto_key_addr_t* cur_item;
+     rc = get_key_addr_item( addr_id, &cur_item );
+     if( rc != SMTC_MODEM_CRYPTO_RC_SUCCESS )
+     {
+@@ -635,7 +635,7 @@ static smtc_modem_crypto_return_code_t derive_multicast_key_encryption_key( uint
+ }
+ 
+ static smtc_modem_crypto_return_code_t get_key_addr_item( smtc_modem_crypto_addr_id_t addr_id,
+-                                                          smtc_crypto_key_addr_t**    item )
++                                                          const smtc_crypto_key_addr_t** item )
+ {
+     for( uint8_t i = 0; i < NUM_OF_MC_SEC_CTX; i++ )
+     {
+diff --git a/smtc_modem_core/smtc_modem_crypto/soft_secure_element/soft_se.c b/smtc_modem_core/smtc_modem_crypto/soft_secure_element/soft_se.c
+index de110f9..54de1ee 100644
+--- a/smtc_modem_core/smtc_modem_crypto/soft_secure_element/soft_se.c
++++ b/smtc_modem_core/smtc_modem_crypto/soft_secure_element/soft_se.c
+@@ -344,7 +344,7 @@ typedef struct soft_se_context_nvm_s
+  * --- PRIVATE VARIABLES -------------------------------------------------------
+  */
+ 
+-static soft_se_data_t soft_se_data[NUMBER_OF_STACKS] = { 0 };
++soft_se_data_t soft_se_data[NUMBER_OF_STACKS];
+ 
+ /*
+  * -----------------------------------------------------------------------------
+diff --git a/smtc_modem_hal/smtc_modem_hal.h b/smtc_modem_hal/smtc_modem_hal.h
+index b9a0e76..ce463a9 100644
+--- a/smtc_modem_hal/smtc_modem_hal.h
++++ b/smtc_modem_hal/smtc_modem_hal.h
+@@ -45,6 +45,7 @@ extern "C" {
+ 
+ #include <stdint.h>   // C99 types
+ #include <stdbool.h>  // bool type
++#include <stdlib.h>
+ 
+ /*
+  * -----------------------------------------------------------------------------
+@@ -55,11 +56,7 @@ extern "C" {
+  * @brief Panic macro for modem issues
+  */
+ 
+-#define SMTC_MODEM_HAL_PANIC( ... )                                                \
+-    do                                                                             \
+-    {                                                                              \
+-        smtc_modem_hal_on_panic( ( uint8_t* ) __func__, __LINE__, ""__VA_ARGS__ ); \
+-    } while( 0 );
++#define SMTC_MODEM_HAL_PANIC( ... ) abort()
+ 
+ /**
+  * @brief  The SMTC_MODEM_HAL_PANIC_ON_FAILURE macro is used for function's parameters check.
+@@ -69,8 +66,7 @@ extern "C" {
+  *         If expr is true, it returns no value.
+  * @retval None
+  */
+-#define SMTC_MODEM_HAL_PANIC_ON_FAILURE( expr ) \
+-    ( ( expr ) ? ( void ) 0U : smtc_modem_hal_on_panic( ( uint8_t* ) __func__, __LINE__, #expr ) )
++#define SMTC_MODEM_HAL_PANIC_ON_FAILURE( expr )  (void)( expr )
+ 
+ /**
+  * @brief Document that a parameter is unused

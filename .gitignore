@@ -1,0 +1,5 @@
+.cache/
+lbm_lib/
+build/
+build-*/
+*.mpy
