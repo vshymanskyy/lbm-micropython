@@ -33,3 +33,4 @@ make ARCH=xtensawin
 - [ ] Create basic module API
 - [ ] Attach LBM driver to MicroPython `machine.SPI` / `machine.Pin`
 - [ ] Class A device
+- [ ] [Allow static `.bss` variables](https://github.com/micropython/micropython/issues/15943)
