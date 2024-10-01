@@ -38,7 +38,7 @@ def build(target, config):
 
 
 # Execute builds in parallel
-with ThreadPoolExecutor(max_workers=1) as executor:
+with ThreadPoolExecutor(max_workers=None) as executor:
     # Create a future for each build task
     futures = {
         executor.submit(build, target, config): (target, config)

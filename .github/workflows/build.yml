@@ -47,4 +47,7 @@ jobs:
         export PATH=$PWD/tools/xtensa-esp32-elf/bin:$PATH
         export MPY_DIR=$PWD/tools/micropython-mpy-ld-link-archives
 
+        # Download and patch LoRa Basic Modem, so it can be used in parallel build
+        make lbm_lib
+
         python3 ./extra/build-all.py
