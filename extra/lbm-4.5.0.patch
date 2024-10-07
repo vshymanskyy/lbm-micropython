@@ -56,7 +56,7 @@ index 4d58286..dfc928c 100644
      lr1_stack_mac_t lr1_mac_obj[NUMBER_OF_STACKS];
      smtc_real_t     real_obj[NUMBER_OF_STACKS];
 diff --git a/smtc_modem_core/lorawan_manager/lorawan_join_management.c b/smtc_modem_core/lorawan_manager/lorawan_join_management.c
-index 345c2c7..1dd43e5 100644
+index 345c2c7..666b7dc 100644
 --- a/smtc_modem_core/lorawan_manager/lorawan_join_management.c
 +++ b/smtc_modem_core/lorawan_manager/lorawan_join_management.c
 @@ -113,7 +113,7 @@ static uint8_t lorawan_join_management_service_downlink_handler( lr1_stack_mac_d
@@ -64,18 +64,19 @@ index 345c2c7..1dd43e5 100644
   */
  static void    lorawan_join_internal_add_task( uint8_t stack_id );
 -static uint8_t nap = 0;
-+
++uint8_t lorawan_join_management_nap = 0;
  /*
   * -----------------------------------------------------------------------------
   * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
-@@ -159,6 +159,7 @@ static void lorawan_join_management_service_on_launch( void* context )
-     }
+@@ -160,7 +160,7 @@ static void lorawan_join_management_service_on_launch( void* context )
      else
      {
-+        uint8_t nap;
          lorawan_api_set_join_status( STACK_ID_CURRENT_TASK, JOINING );
-         tx_protocol_manager_request( TX_PROTOCOL_JOIN_LORA, NAP, NAP, &nap, NAP, NAP, smtc_modem_hal_get_time_in_ms( ),
+-        tx_protocol_manager_request( TX_PROTOCOL_JOIN_LORA, NAP, NAP, &nap, NAP, NAP, smtc_modem_hal_get_time_in_ms( ),
++        tx_protocol_manager_request( TX_PROTOCOL_JOIN_LORA, NAP, NAP, &lorawan_join_management_nap, NAP, NAP, smtc_modem_hal_get_time_in_ms( ),
                                       STACK_ID_CURRENT_TASK );
+     }
+ }
 diff --git a/smtc_modem_core/lorawan_manager/lorawan_send_management.c b/smtc_modem_core/lorawan_manager/lorawan_send_management.c
 index 6ce2f97..0eaea73 100644
 --- a/smtc_modem_core/lorawan_manager/lorawan_send_management.c
@@ -156,10 +157,27 @@ index a0d1851..166e8b1 100755
 \ No newline at end of file
 +}
 diff --git a/smtc_modem_core/modem_utilities/modem_core.c b/smtc_modem_core/modem_utilities/modem_core.c
-index 7fbb32a..6ecc0ea 100644
+index 7fbb32a..50fee8d 100644
 --- a/smtc_modem_core/modem_utilities/modem_core.c
 +++ b/smtc_modem_core/modem_utilities/modem_core.c
-@@ -266,7 +266,7 @@ bool modem_suspend_radio_access( void )
+@@ -141,12 +141,16 @@ static void modem_downlink_callback( lr1_stack_mac_down_data_t* rx_down_data );
+  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
+  */
+ 
++modem_service_config_t modem_service_config[NUMBER_OF_SERVICES];
++
+ void modem_context_init_light( void ( *callback )( void ), radio_planner_t* rp )
+ {
+     void  ( *callback_on_launch_temp )( void* );
+     void  ( *callback_on_update_temp )( void* );
+     void* context_callback_tmp;
+ 
++    memcpy(modem_service_config, modem_service_config_table, sizeof(modem_service_config_table));
++
+     modem_rp = rp;
+     modem_event_init( callback );
+ 
+@@ -266,7 +270,7 @@ bool modem_suspend_radio_access( void )
  {
      rp_radio_params_t fake_radio_params = { 0 };
  
@@ -169,35 +187,29 @@ index 7fbb32a..6ecc0ea 100644
          .type                       = RP_TASK_TYPE_NONE,
          .launch_task_callbacks      = modem_empty_callback,
 diff --git a/smtc_modem_core/modem_utilities/modem_services_config.h b/smtc_modem_core/modem_utilities/modem_services_config.h
-index d9ad729..7ca7c8f 100644
+index d9ad729..c4195b5 100644
 --- a/smtc_modem_core/modem_utilities/modem_services_config.h
 +++ b/smtc_modem_core/modem_utilities/modem_services_config.h
-@@ -104,14 +104,14 @@ typedef struct modem_service_config_s
-     uint8_t service_id;  // Start to 0 for new type of services, increment this number for multiple instantiation of the
-                          // same type of service
-     uint8_t stack_id;    // The linked LoRaWAN stack to this service
--    void    ( *callbacks_init_service )( uint8_t* service_id, uint8_t task_id,
-+    void    ( *callbacks_init_service )( const uint8_t* service_id, uint8_t task_id,
-                                       uint8_t ( **callback )( lr1_stack_mac_down_data_t* ),
-                                       void ( **callback_on_launch )( void* ), void ( **callback_on_update )( void* ),
-                                       void** callback_context );
+@@ -111,7 +111,7 @@ typedef struct modem_service_config_s
  
  } modem_service_config_t;
  
 -static modem_service_config_t modem_service_config[] = {
-+static const modem_service_config_t modem_service_config[1]; /*{
++static const modem_service_config_t modem_service_config_table[] = {
      { .service_id = 0, .stack_id = 0, .callbacks_init_service = lorawan_certification_services_init },
  #ifdef RELAY_RX
      { .service_id = 0, .stack_id = 0, .callbacks_init_service = lorawan_relay_rx_services_init },
-@@ -158,7 +158,7 @@ static modem_service_config_t modem_service_config[] = {
-     { .service_id = 0, .stack_id = 0, .callbacks_init_service = store_and_forward_flash_services_init },
- // { .service_id = 0, .stack_id = 0, .callbacks_init_service = store_and_forward_services_init },
+@@ -160,7 +160,9 @@ static modem_service_config_t modem_service_config[] = {
  #endif
--};
-+};*/
+ };
  
- #define NUMBER_OF_SERVICES ( sizeof modem_service_config / sizeof modem_service_config[0] )
+-#define NUMBER_OF_SERVICES ( sizeof modem_service_config / sizeof modem_service_config[0] )
++#define NUMBER_OF_SERVICES ( sizeof modem_service_config_table / sizeof modem_service_config_table[0] )
++
++extern modem_service_config_t modem_service_config[NUMBER_OF_SERVICES];
  
+ #ifdef __cplusplus
+ }
 diff --git a/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c b/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c
 index b01d5a1..cea5dbb 100644
 --- a/smtc_modem_core/radio_drivers/sx126x_driver/src/sx126x.c
@@ -212,7 +224,7 @@ index b01d5a1..cea5dbb 100644
      { 9700, SX126X_GFSK_BW_9700 },     { 11700, SX126X_GFSK_BW_11700 },   { 14600, SX126X_GFSK_BW_14600 },
      { 19500, SX126X_GFSK_BW_19500 },   { 23400, SX126X_GFSK_BW_23400 },   { 29300, SX126X_GFSK_BW_29300 },
 diff --git a/smtc_modem_core/smtc_modem.c b/smtc_modem_core/smtc_modem.c
-index 960d420..b22e7b0 100644
+index 960d420..495f4d8 100644
 --- a/smtc_modem_core/smtc_modem.c
 +++ b/smtc_modem_core/smtc_modem.c
 @@ -174,20 +174,13 @@ typedef struct modem_key_ctx_s
@@ -228,11 +240,10 @@ index 960d420..b22e7b0 100644
 -#elif defined( SX127X )
 +#if defined( SX127X )
  #include "sx127x.h"
--static sx127x_t sx127x;
+ static sx127x_t sx127x;
 -ralf_t          modem_radio = RALF_SX127X_INSTANTIATE( &sx127x );
 -#else
 -#error "Please select radio board.."
-+sx127x_t sx127x;
  #endif
  
 +ralf_t modem_radio;

@@ -15,6 +15,7 @@ ARCH ?= xtensawin
 MOD ?= lbm
 
 SRC += module/module.c          \
+       module/modem_cbk.c       \
        module/libc.c            \
        module/smtc_modem_hal.c  \
        module/ral_sx126x_bsp.c  \
@@ -23,6 +24,10 @@ SRC += module/module.c          \
 
 ifeq ($(ARCH),xtensa)
   SRC += module/esp8266-rom.S
+else ifeq ($(ARCH),x86)
+  SRC += module/libc_x86.c
+else ifeq ($(ARCH),x64)
+  SRC += module/libc_x86.c
 endif
 
 MICROPY_LINK_RUNTIME = 1
@@ -33,7 +38,7 @@ MPY_LD_FLAGS += -llbm_lib/$(BUILD)/basic_modem.a
 
 CLEAN_EXTRA += lbm_lib/$(BUILD)
 
-CFLAGS += -Os -Wno-unused-value -Wno-unused-function \
+CFLAGS += -Os -Imodule -Wno-unused-value -Wno-unused-function \
           -Wno-unused-variable -Wno-unused-but-set-variable -Wwrite-strings \
           -Ilbm_lib/smtc_modem_api -Ilbm_lib/smtc_modem_hal \
           -Ilbm_lib/smtc_modem_core/smtc_ral/src \

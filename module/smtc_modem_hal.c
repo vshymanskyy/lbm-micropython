@@ -4,6 +4,7 @@
  * --- DEPENDENCIES ------------------------------------------------------------
  */
 
+#include "py/dynruntime.h"
 #include "smtc_modem_hal.h"
 
 #include <stdint.h>   // C99 types
@@ -160,20 +161,14 @@ bool smtc_modem_hal_crashlog_get_status( void )
 
 void smtc_modem_hal_on_panic( uint8_t* func, uint32_t line, const char* fmt, ... )
 {
-    /*
-    uint8_t out_buff[255] = { 0 };
-    uint8_t out_len       = snprintf( ( char* ) out_buff, sizeof( out_buff ), "%s:%lu ", func, line );
+    mp_printf(&mp_plat_print, "%s:%lu ", func, line);
 
     va_list args;
-    va_start( args, fmt );
-    out_len += vsprintf( ( char* ) &out_buff[out_len], fmt, args );
-    va_end( args );
+    va_start(args, fmt);
+    mp_vprintf(&mp_plat_print, fmt, args);
+    va_end(args);
 
-    smtc_modem_hal_crashlog_store( out_buff, out_len );
-
-    SMTC_HAL_TRACE_ERROR( "Modem panic: %s\n", out_buff );
-    smtc_modem_hal_reset_mcu( );
-    */
+    mp_raise_msg(&mp_type_RuntimeError, "Panic");
 }
 
 /* ------------ Random management ------------*/

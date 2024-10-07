@@ -7,6 +7,7 @@
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 
+#include "py/dynruntime.h"
 #include "sx126x_hal.h"
 
 /*

@@ -4,6 +4,32 @@
 > [!IMPORTANT]
 > **This is a Proof-of-Concept, not ready for actual use.**
 
+## Running
+
+Copy `lbm.mpy` to device:
+
+```sh
+mpremote cp lbm.mpy :
+```
+
+In MicroPython REPL:
+
+```py
+import lbm
+import asyncio
+
+lora = lbm.LoRaWAN()
+
+async def lora_task():
+    while True:
+        n = lora.poll()
+        await asyncio.sleep_ms(n)
+
+asyncio.run(asyncio.gather(
+    lora_task(),
+))
+```
+
 ## TODO
 
 - [x] Fix build

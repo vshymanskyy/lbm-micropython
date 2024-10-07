@@ -41,6 +41,11 @@ jobs:
         sudo apt install build-essential gcc-multilib gcc-arm-none-eabi
         pip3 install -U requests pyelftools ar tabulate
 
+    - name: Add RV32 support
+      run: |
+        cd ./tools/micropython-mpy-ld-link-archives
+        patch -p1 < ../../extra/mpy-rv32.patch
+
     - name: Run builds
       run: |
         export PATH=$PWD/tools/xtensa-lx106-elf/bin:$PATH
