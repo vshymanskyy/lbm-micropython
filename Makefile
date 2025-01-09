@@ -30,7 +30,7 @@ else ifeq ($(ARCH),x64)
   SRC += module/libc_x86.c
 endif
 
-MICROPY_LINK_RUNTIME = 1
+LINK_RUNTIME = 1
 
 include $(MPY_DIR)/py/dynruntime.mk
 
@@ -49,7 +49,7 @@ module/module.c: lbm_lib/$(BUILD)/basic_modem.a
 
 lbm_lib/$(BUILD)/basic_modem.a: lbm_lib FORCE_LBM_BUILD
 	$(Q)$(MAKE) --no-print-directory -C lbm_lib basic_modem_sx1262 BUILD_ROOT="$(BUILD)" \
-		PREFIX="$(CROSS)" MCU_FLAGS="$(MICROPY_ARCH_CFLAGS)" EXTRAFLAGS="-Werror -DNDEBUG" \
+		PREFIX="$(CROSS)" MCU_FLAGS="$(CFLAGS_ARCH)" EXTRAFLAGS="-Werror -DNDEBUG" \
 		REGION="$(LBM_REGION)" MODEM_TRACE="no" VERBOSE="no"
 
 lbm_lib:
